@@ -1,0 +1,86 @@
+
+
+#read the shapefile of point locations in 
+nocalf_2017_all <- read.csv('2018_allcalf_nocalf_2018.csv', header = TRUE, sep=',') 
+
+# set table columns as named items 
+long1 <- nocalf_2017_all$xstart  # set the longitude start point
+long2 <- nocalf_2017_all$xend    # set the longiduet end point
+lat1 <- nocalf_2017_all$ystart # set the latitude start point
+lat2 <- nocalf_2017_all$yend   # set the latitude end point
+daynight <- (nocalf_2017_all$ï..)  # set the day/night value
+reindeer <- (nocalf_2017_all$iid)
+
+# create a table with just the x and y data 
+a <-cbind(long=c(long1), lat=c(lat1))  # create a start point table
+b <- cbind(long=c(long2), lat=c(lat2))  # create an end point table
+
+# calculate the distance between the points from the start x and y and the end x and y tables. 
+dist1 <- pointDistance(a,b, lonlat=FALSE)  #calculatue the distances 
+
+# add the reindeer's id and the day/night classification data to the distances data
+dist2 <- cbind(distances = c(dist1), reindeer=c(reindeer), daynight=c(daynight))
+print(dist2)
+
+# save the output as a dataframe
+c <- as.data.frame(dist2)
+
+###################################### filtering the data ################################
+
+#filter the datasets by whether it's day or night (day = 2 and 1 values, night = 3 values)
+night <- filter(c, c$daynight == 1)
+day <- filter(c, c$daynight ==0)
+
+#### filter by day/night ##########
+
+#splits the *day* data up by id value and saves as a new dataframe
+Map(function(x,y) assign(x,y, envir = .GlobalEnv), x = c("day8739", "day12495","day11947","day11150"), 
+    y = split(day, interaction(day$reindeer), drop = TRUE))
+#goes from smallest to highest
+
+#splits the *night* data up by id value and saves as a new dataframe
+Map(function(x,y) assign(x,y, envir = .GlobalEnv), x = c("night8739", "night12495","night11947","night11150"), 
+    y = split(night, interaction(night$reindeer), drop = TRUE))
+
+write.csv(night8739, "no_calf_2018_distances_night8739.csv")
+write.csv(night12495, "no_calf_2018_distances_night12495.csv")
+write.csv(night11947, "no_calf_2018_distances_night11947.csv")
+write.csv(night11150, "no_calf_2018_distances_night11150.csv")
+####################### calculations #######################
+########################   night    ########################
+
+#create a list of the previously divided data 
+df_list_night <- list(night8739, night12495, night11947, night11150)
+
+#calculates the sum of night distance values
+sum_night <- lapply(df_list_night, function(x) sum(x[[1]]))
+
+#calculates the mean of night distance values
+mean_night <- lapply(df_list_night, function(x) mean(x[[1]]))
+
+
+######################   day #################################
+
+# calculate the sum of distance values in each dataframe # night time
+df_list_day <- list(day8739, day12495, day11947, day11150)
+
+#calculates the sum of day distance values
+sum_day <- lapply(df_list_day, function(x) sum(x[[1]]))
+
+#calculates the mean of day distance values
+mean_day <- lapply(df_list_day, function(x) mean(x[[1]]))
+
+############### overall ###################
+
+cbind(day)
+
+# make a table of the results
+
+no_calf_2017 <- cbind(ReindeerNo = c("8739", "12495", "11947","11150"), SumNight = c(sum_night), 
+             SumDay =c(sum_day), MeanNight = c(mean_night), MeanDay = c(mean_day))
+
+
+print(no_calf_2017)
+
+# Writes the values to a csv
+write.csv(no_calf_2017, "no_calf_2018_distances_final2.csv")
